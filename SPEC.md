@@ -252,10 +252,11 @@ All themed colors controlled via CSS variables on `:root` (dark default). `body.
 ## 17. UI / Styling
 
 ### 17.1 Layout
-- Body: flexbox row with wrapping, centered, `align-items: flex-start`, `gap: 20px`.
-- Header: `width: 100%`, `max-width: 720px`, spans full width.
-- Player container: 300px fixed, `flex-shrink: 0` — positioned on the left.
-- Playlist: `flex: 1`, `min-width: 300px`, grows up to available space — positioned on the right.
+- Body: flexbox row with wrapping, centered, `align-items: flex-start`, no gap.
+- Header: `width: 100%`, spans full width above both columns.
+- Player container: `flex: 0 0 50%`, `max-width: 50%`, `box-sizing: border-box` — left half of viewport.
+- Playlist: `flex: 0 0 50%`, `max-width: 50%`, `box-sizing: border-box` — right half of viewport.
+- On narrow viewports (`<720px`): both stack to 100% width vertically.
 
 ### 17.2 Micro-interactions
 - Buttons: `scale(0.93)` on `:active`, 0.1s transition.
@@ -266,15 +267,15 @@ All themed colors controlled via CSS variables on `:root` (dark default). `body.
 
 ### 17.3 Custom Scrollbar
 - Webkit pseudo-elements: 8px width, transparent track, themed thumb.
-- `.playlist` max-height: 400px, `overflow-y: auto`.
+- `.playlist` max-height: `calc(100vh - 100px)`, `overflow-y: auto`.
 
 ### 17.4 Responsive Design
-- `@media (max-width: 760px)`: Layout stacks vertically when viewport is too narrow.
-  - Fluid widths with `max-width` and `box-sizing: border-box`
-  - Reduced padding, gap and font sizes
+- `@media (max-width: 720px)`: Layout stacks vertically when viewport is too narrow.
+  - Both columns become 100% width, stacked vertically
+  - Reduced padding and font sizes
   - Vinyl shrinks to 100px
   - Volume slider spans full width
-  - Toasts adjust to screen edges
+  - Playlist max-height reduced to 300px
 
 ### 17.5 Export
 - Downloads `playlist_YYYY-MM-DD.json` with track names and play counts.

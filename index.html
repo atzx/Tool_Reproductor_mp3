@@ -35,11 +35,11 @@
             flex-wrap: wrap;
             justify-content: center;
             align-items: flex-start;
-            gap: 20px;
+            gap: 0;
             background-color: var(--bg-color);
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             color: var(--text-color);
             transition: background-color 0.3s;
         }
@@ -49,10 +49,11 @@
             justify-content: space-between;
             align-items: center;
             width: 100%;
-            max-width: 720px;
-            padding-bottom: 10px;
+            max-width: 100%;
+            padding: 0 10px 10px 10px;
             border-bottom: 1px solid var(--header-border);
             margin-bottom: 10px;
+            box-sizing: border-box;
         }
 
         .header h1 {
@@ -84,8 +85,9 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            width: 300px;
-            flex-shrink: 0;
+            flex: 0 0 50%;
+            max-width: 50%;
+            box-sizing: border-box;
             transition: background-color 0.3s;
         }
 
@@ -226,11 +228,11 @@
         }
 
         .playlist {
-            width: 360px;
-            min-width: 300px;
+            flex: 0 0 50%;
+            max-width: 50%;
             min-height: 200px;
-            max-height: 520px;
-            flex: 1;
+            max-height: calc(100vh - 100px);
+            box-sizing: border-box;
             overflow-y: auto;
             border: 2px dashed var(--dropzone-border);
             border-radius: 10px;
@@ -625,17 +627,15 @@
             border-radius: 4px;
         }
 
-        /* Responsive design */
-        @media (max-width: 760px) {
+        /* Responsive design: apila verticalmente en pantallas angostas */
+        @media (max-width: 720px) {
             body {
-                padding: 10px;
-                gap: 12px;
+                padding: 8px;
             }
 
             .header {
-                max-width: 100%;
-                box-sizing: border-box;
-                padding-bottom: 8px;
+                padding: 0 5px 8px 5px;
+                margin-bottom: 8px;
             }
 
             .header h1 {
@@ -643,18 +643,15 @@
             }
 
             .player-container {
-                flex-shrink: unset;
-                width: 100%;
-                max-width: 340px;
+                flex: 0 0 100%;
+                max-width: 100%;
                 padding: 15px;
-                box-sizing: border-box;
             }
 
             .playlist {
-                width: 100%;
-                min-width: 0;
+                flex: 0 0 100%;
+                max-width: 100%;
                 max-height: 300px;
-                box-sizing: border-box;
             }
 
             .vinyl {
@@ -697,7 +694,7 @@
             <div class="vinyl paused" id="vinylDisc"></div>
         </div>
         <div class="equalizer-container">
-            <canvas id="equalizerCanvas" width="300" height="40"></canvas>
+            <canvas id="equalizerCanvas" height="40"></canvas>
         </div>
         <div class="current-song" id="currentSong">Selecciona archivos de audio</div>
         <audio id="audioPlayer"></audio>
@@ -1186,6 +1183,14 @@
         // Ecualizador visual
         const canvas = document.getElementById('equalizerCanvas');
         const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = Math.round(rect.width * 2); // 2x for retina
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
         let audioContext = null;
         let analyser = null;
         let sourceNode = null;
