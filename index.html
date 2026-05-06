@@ -99,11 +99,22 @@
             background-color: var(--primary);
             color: white;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.1s;
+            position: relative;
+            overflow: hidden;
         }
 
         button:hover {
             background-color: var(--primary-hover);
+        }
+
+        button:active {
+            transform: scale(0.93);
+        }
+
+        @keyframes pulseBtn {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(76, 175, 80, 0); }
         }
 
         /* Range sliders personalizados */
@@ -240,7 +251,7 @@
             margin-bottom: 5px;
             border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.15s, padding-left 0.2s;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -248,17 +259,35 @@
 
         .playlist-item:hover {
             background-color: var(--playlist-item-hover);
+            padding-left: 14px;
+        }
+
+        .playlist-item:active {
+            transform: scale(0.98);
         }
 
         .playlist-item.playing {
             background-color: var(--primary);
             color: white;
+            padding-left: 14px;
         }
 
         .current-song {
             margin: 10px 0;
             font-weight: bold;
             text-align: center;
+        }
+
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .time-info:hover {
+            opacity: 1;
         }
 
         .mode-buttons {
@@ -340,7 +369,7 @@
         </div>
         <div class="controls">
             <button onclick="previousTrack()" title="Anterior">⏮</button>
-            <button onclick="togglePlay()" title="Reproducir / Pausar">▶</button>
+            <button id="playBtn" onclick="togglePlay()" title="Reproducir / Pausar">▶</button>
             <button onclick="nextTrack()" title="Siguiente">⏭</button>
             <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="1" title="Volumen">
         </div>
@@ -437,10 +466,8 @@
         function togglePlay() {
             if(audioPlayer.paused) {
                 audioPlayer.play();
-                document.querySelector('button[onclick="togglePlay()"]').textContent = '⏸';
             } else {
                 audioPlayer.pause();
-                document.querySelector('button[onclick="togglePlay()"]').textContent = '▶';
             }
         }
 
@@ -521,6 +548,17 @@
         // Volumen
         volumeControl.addEventListener('input', (e) => {
             audioPlayer.volume = e.target.value;
+        });
+
+        // Actualizar indicador del botón play al iniciar/pausar desde playTrack
+        audioPlayer.addEventListener('play', () => {
+            document.getElementById('playBtn').textContent = '⏸';
+            document.getElementById('playBtn').classList.add('playing-indicator');
+        });
+
+        audioPlayer.addEventListener('pause', () => {
+            document.getElementById('playBtn').textContent = '▶';
+            document.getElementById('playBtn').classList.remove('playing-indicator');
         });
 
         // Final de canción
