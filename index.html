@@ -176,10 +176,30 @@
             margin-top: 20px;
             width: 300px;
             min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
             border: 2px dashed var(--dropzone-border);
             border-radius: 10px;
             padding: 10px;
             transition: border-color 0.3s, background-color 0.3s;
+        }
+
+        /* Scrollbar personalizada */
+        .playlist::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .playlist::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .playlist::-webkit-scrollbar-thumb {
+            background: var(--dropzone-border);
+            border-radius: 4px;
+        }
+
+        .playlist::-webkit-scrollbar-thumb:hover {
+            background: var(--text-color);
         }
 
         .playlist.dragover {
