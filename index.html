@@ -272,6 +272,24 @@
             padding-left: 14px;
         }
 
+        .playlist-item .delete-track {
+            background: none;
+            border: none;
+            color: inherit;
+            opacity: 0.4;
+            cursor: pointer;
+            padding: 2px 6px;
+            font-size: 0.85rem;
+            border-radius: 3px;
+            transition: opacity 0.2s, background-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .playlist-item .delete-track:hover {
+            opacity: 1;
+            background-color: rgba(0,0,0,0.15);
+        }
+
         .current-song {
             margin: 10px 0;
             font-weight: bold;
@@ -581,7 +599,21 @@
                 const div = document.createElement('div');
                 div.className = 'playlist-item';
                 div.title = file.name;
-                div.textContent = file.name;
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = file.name;
+                div.appendChild(nameSpan);
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-track';
+                delBtn.textContent = '✕';
+                delBtn.title = 'Eliminar';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeTrack(tracks.length - 1);
+                };
+                div.appendChild(delBtn);
+
                 div.onclick = () => playTrack(tracks.indexOf(tracks.find(t => t.url === url)));
                 playlist.appendChild(div);
             }
@@ -590,6 +622,38 @@
             if (added > 0) showToast(`${added} archivo${added > 1 ? 's' : ''} agregado${added > 1 ? 's' : ''}`, 'success');
 
             if(tracks.length > 0 && audioPlayer.paused) playTrack(0);
+        }
+
+        // Eliminar canción
+        function removeTrack(index) {
+            if (index < 0 || index >= tracks.length) return;
+            const removedName = tracks[index].name;
+
+            URL.revokeObjectURL(tracks[index].url);
+            tracks.splice(index, 1);
+
+            const items = document.querySelectorAll('.playlist-item');
+            items[index].remove();
+
+            if (tracks.length === 0) {
+                audioPlayer.pause();
+                audioPlayer.src = '';
+                currentSong.textContent = 'Selecciona archivos de audio';
+                document.getElementById('playBtn').textContent = '▶';
+                vinylDisc.classList.remove('spinning');
+                vinylDisc.classList.add('paused');
+                if (eqAnimId) {
+                    cancelAnimationFrame(eqAnimId);
+                    eqAnimId = null;
+                }
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            } else if (index === currentTrackIndex) {
+                playTrack(Math.min(index, tracks.length - 1));
+            } else if (index < currentTrackIndex) {
+                currentTrackIndex--;
+            }
+
+            showToast(`Eliminado: ${removedName}`, 'info');
         }
 
         // Drag and Drop
