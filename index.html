@@ -117,6 +117,17 @@
             50% { box-shadow: 0 0 0 8px rgba(76, 175, 80, 0); }
         }
 
+        @keyframes shuffleWiggle {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            75% { transform: rotate(15deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        .shuffle-active {
+            animation: shuffleWiggle 0.3s ease;
+        }
+
         /* Range sliders personalizados */
         input[type="range"] {
             -webkit-appearance: none;
@@ -921,7 +932,13 @@
         // Modos de reproducción
         function toggleShuffle() {
             isShuffle = !isShuffle;
-            document.getElementById('shuffleBtn').classList.toggle('active-mode', isShuffle);
+            const btn = document.getElementById('shuffleBtn');
+            btn.classList.toggle('active-mode', isShuffle);
+            if (isShuffle) {
+                btn.classList.remove('shuffle-active');
+                void btn.offsetWidth; // trigger reflow
+                btn.classList.add('shuffle-active');
+            }
             showToast(isShuffle ? 'Modo aleatorio activado' : 'Modo aleatorio desactivado', 'info');
             saveState();
         }
