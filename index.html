@@ -257,6 +257,29 @@
             justify-content: space-between;
         }
 
+        .playlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        .playlist-header button {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            background-color: transparent;
+            border: 1px solid var(--text-color);
+            color: var(--text-color);
+            opacity: 0.7;
+        }
+
+        .playlist-header button:hover {
+            opacity: 1;
+            background-color: rgba(255,255,255,0.1);
+        }
+
         .playlist-item:hover {
             background-color: var(--playlist-item-hover);
             padding-left: 14px;
@@ -550,13 +573,19 @@
     </div>
 
     <div class="playlist" id="playlist">
-        Arrastra y suelta archivos de audio aquí
+        <div class="playlist-header">
+            <span id="trackCount">Lista de reproducción</span>
+            <button id="clearPlaylistBtn" onclick="clearPlaylist()" title="Limpiar playlist" style="display:none;">🗑 Limpiar</button>
+        </div>
+        <div id="playlistItems">Arrastra y suelta archivos de audio aquí</div>
     </div>
 
     <script>
         const audioPlayer = document.getElementById('audioPlayer');
         const fileInput = document.getElementById('fileInput');
         const playlist = document.getElementById('playlist');
+        const playlistItems = document.getElementById('playlistItems');
+        const trackCount = document.getElementById('trackCount');
         const progressBar = document.getElementById('progressBar');
         const volumeControl = document.getElementById('volumeControl');
         const currentTime = document.getElementById('currentTime');
@@ -615,13 +644,40 @@
                 div.appendChild(delBtn);
 
                 div.onclick = () => playTrack(tracks.indexOf(tracks.find(t => t.url === url)));
-                playlist.appendChild(div);
+                playlistItems.appendChild(div);
             }
 
+            updatePlaylistCount();
             const added = files.length;
             if (added > 0) showToast(`${added} archivo${added > 1 ? 's' : ''} agregado${added > 1 ? 's' : ''}`, 'success');
 
             if(tracks.length > 0 && audioPlayer.paused) playTrack(0);
+        }
+
+        function updatePlaylistCount() {
+            trackCount.textContent = tracks.length ? `${tracks.length} canción${tracks.length > 1 ? 'es' : ''}` : 'Lista de reproducción';
+            document.getElementById('clearPlaylistBtn').style.display = tracks.length ? 'inline-block' : 'none';
+        }
+
+        // Limpiar playlist
+        function clearPlaylist() {
+            tracks.forEach(t => URL.revokeObjectURL(t.url));
+            tracks = [];
+            playlistItems.innerHTML = '<span style="opacity:0.5;font-size:0.9rem;">Arrastra y suelta archivos de audio aquí</span>';
+            audioPlayer.pause();
+            audioPlayer.src = '';
+            currentSong.textContent = 'Selecciona archivos de audio';
+            document.getElementById('playBtn').textContent = '▶';
+            vinylDisc.classList.remove('spinning');
+            vinylDisc.classList.add('paused');
+            if (eqAnimId) {
+                cancelAnimationFrame(eqAnimId);
+                eqAnimId = null;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            currentTrackIndex = 0;
+            updatePlaylistCount();
+            showToast('Playlist limpiada', 'info');
         }
 
         // Eliminar canción
@@ -653,6 +709,7 @@
                 currentTrackIndex--;
             }
 
+            updatePlaylistCount();
             showToast(`Eliminado: ${removedName}`, 'info');
         }
 
@@ -899,6 +956,9 @@
             duration.textContent = formatTime(audioPlayer.duration);
             progressBar.max = audioPlayer.duration;
         });
+
+        // Inicializar contador
+        updatePlaylistCount();
     </script>
 </body>
 </html>
