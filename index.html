@@ -1149,6 +1149,24 @@
             }
         });
 
+        // Media Session API (controles desde SO / notificaciones)
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.setActionHandler('play', () => audioPlayer.play());
+            navigator.mediaSession.setActionHandler('pause', () => audioPlayer.pause());
+            navigator.mediaSession.setActionHandler('previoustrack', () => previousTrack());
+            navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
+        }
+
+        audioPlayer.addEventListener('play', () => {
+            if (!('mediaSession' in navigator)) return;
+            const track = tracks[currentTrackIndex];
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: track ? track.name : 'Tool Player mp3',
+                artist: 'Reproductor Local',
+                album: 'Tool Player mp3'
+            });
+        });
+
         // Inicializar duración
         audioPlayer.addEventListener('loadedmetadata', () => {
             duration.textContent = formatTime(audioPlayer.duration);
