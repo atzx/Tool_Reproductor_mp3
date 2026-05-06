@@ -117,11 +117,13 @@ All themed colors controlled via CSS variables on `:root` (dark default). `body.
 
 ### 5.3 Progress Bar
 - Custom styled `<input type="range">` with:
+  - Default `min=0`, `max=100` (percentage-based)
   - Custom track/thumb via `::-webkit-slider-*` / `::-moz-range-*`
   - Thumb scales on hover
   - `#progressBar` has larger thumb (18px)
+- Value set on `timeupdate`: `(currentTime / duration) * 100`.
+- Seek on `input` event: `(value / 100) * duration`.
 - Progress tooltip: on `mousemove`, shows time at cursor position via positioned overlay.
-- Updates via `timeupdate` event.
 
 ### 5.4 Time Display
 - `#currentTime` and `#duration` shown as `M:SS`.
