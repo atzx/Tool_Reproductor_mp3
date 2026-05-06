@@ -375,6 +375,49 @@
             background-color: var(--active) !important;
         }
 
+        /* Speed control */
+        .speed-control {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .speed-label {
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        .speed-buttons {
+            display: flex;
+            gap: 4px;
+        }
+
+        .speed-btn {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            background-color: transparent;
+            border: 1px solid var(--dropzone-border);
+            color: var(--text-color);
+            opacity: 0.7;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .speed-btn:hover {
+            opacity: 1;
+            border-color: var(--text-color);
+        }
+
+        .speed-btn.active-speed {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            opacity: 1;
+        }
+
         /* Toast notifications */
         .toast-container {
             position: fixed;
@@ -603,6 +646,15 @@
             <button id="shuffleBtn" onclick="toggleShuffle()" title="Modo aleatorio">🔀</button>
             <button id="repeatBtn" onclick="toggleRepeat()" title="Modo repetición">🔁</button>
         </div>
+        <div class="speed-control">
+            <span class="speed-label">Velocidad</span>
+            <div class="speed-buttons">
+                <button class="speed-btn" onclick="setSpeed(0.5)" title="0.5x">0.5x</button>
+                <button class="speed-btn active-speed" onclick="setSpeed(1)" title="1x">1x</button>
+                <button class="speed-btn" onclick="setSpeed(1.5)" title="1.5x">1.5x</button>
+                <button class="speed-btn" onclick="setSpeed(2)" title="2x">2x</button>
+            </div>
+        </div>
     </div>
 
     <div class="playlist" id="playlist">
@@ -647,6 +699,7 @@
                 volume: audioPlayer.volume,
                 isShuffle,
                 repeatMode,
+                speed: audioPlayer.playbackRate,
                 theme: document.body.classList.contains('light-mode') ? 'light' : 'dark'
             };
             try {
@@ -676,6 +729,9 @@
                 if (state.theme === 'light') {
                     document.body.classList.add('light-mode');
                     document.getElementById('themeToggle').textContent = '☀️';
+                }
+                if (state.speed && state.speed !== 1) {
+                    setSpeed(state.speed);
                 }
             } catch(e) {}
         }
@@ -878,6 +934,15 @@
             repeatBtn.classList.toggle('active-mode', repeatMode !== 'none');
             const labels = { none: 'Repetición desactivada', all: 'Repetir toda la lista', one: 'Repetir una canción' };
             showToast(labels[repeatMode], 'info');
+            saveState();
+        }
+
+        // Control de velocidad
+        function setSpeed(speed) {
+            audioPlayer.playbackRate = speed;
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.toggle('active-speed', parseFloat(btn.textContent) === speed);
+            });
             saveState();
         }
 
