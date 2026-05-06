@@ -669,6 +669,7 @@
         <div class="mode-buttons">
             <button id="shuffleBtn" onclick="toggleShuffle()" title="Modo aleatorio">🔀</button>
             <button id="repeatBtn" onclick="toggleRepeat()" title="Modo repetición">🔁</button>
+            <button onclick="togglePiP()" title="Picture-in-Picture">🖼</button>
         </div>
         <div class="speed-control">
             <span class="speed-label">Velocidad</span>
@@ -979,6 +980,19 @@
             saveState();
         }
 
+        // Picture-in-Picture
+        function togglePiP() {
+            if (document.pictureInPictureElement) {
+                document.exitPictureInPicture();
+            } else if (audioPlayer.readyState >= 2) {
+                audioPlayer.requestPictureInPicture().catch(() => {
+                    showToast('PiP no disponible', 'error');
+                });
+            } else {
+                showToast('Espera a que cargue el audio', 'info');
+            }
+        }
+
         // Control de velocidad
         function setSpeed(speed) {
             audioPlayer.playbackRate = speed;
@@ -1165,6 +1179,14 @@
                 artist: 'Reproductor Local',
                 album: 'Tool Player mp3'
             });
+        });
+
+        audioPlayer.addEventListener('enterpictureinpicture', () => {
+            showToast('PiP activado', 'info');
+        });
+
+        audioPlayer.addEventListener('leavepictureinpicture', () => {
+            showToast('PiP desactivado', 'info');
         });
 
         // Inicializar duración
