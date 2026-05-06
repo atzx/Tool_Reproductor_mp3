@@ -442,6 +442,55 @@
             opacity: 1;
         }
 
+        /* Sleep timer */
+        .sleep-options {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .sleep-label {
+            font-size: 0.75rem;
+            opacity: 0.6;
+        }
+
+        .sleep-opt {
+            padding: 3px 8px;
+            font-size: 0.75rem;
+            background-color: transparent;
+            border: 1px solid var(--dropzone-border);
+            color: var(--text-color);
+            border-radius: 3px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: all 0.2s;
+        }
+
+        .sleep-opt:hover {
+            opacity: 1;
+            border-color: var(--text-color);
+        }
+
+        .sleep-opt.cancel {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+
+        .sleep-opt.cancel:hover {
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+
+        .sleep-countdown {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: var(--active);
+            text-align: center;
+            margin-top: 4px;
+        }
+
         /* Toast notifications */
         .toast-container {
             position: fixed;
@@ -670,7 +719,17 @@
             <button id="shuffleBtn" onclick="toggleShuffle()" title="Modo aleatorio">🔀</button>
             <button id="repeatBtn" onclick="toggleRepeat()" title="Modo repetición">🔁</button>
             <button onclick="togglePiP()" title="Picture-in-Picture">🖼</button>
+            <button id="sleepBtn" onclick="toggleSleepTimer()" title="Temporizador de sueño">⏱</button>
         </div>
+        <div id="sleepOptions" class="sleep-options" style="display:none;">
+            <span class="sleep-label">Dormir en:</span>
+            <button onclick="setSleepTimer(5)" class="sleep-opt">5 min</button>
+            <button onclick="setSleepTimer(10)" class="sleep-opt">10 min</button>
+            <button onclick="setSleepTimer(30)" class="sleep-opt">30 min</button>
+            <button onclick="setSleepTimer(60)" class="sleep-opt">1 h</button>
+            <button onclick="cancelSleepTimer()" class="sleep-opt cancel">Cancelar</button>
+        </div>
+        <span id="sleepCountdown" class="sleep-countdown" style="display:none;"></span>
         <div class="speed-control">
             <span class="speed-label">Velocidad</span>
             <div class="speed-buttons">
@@ -876,6 +935,7 @@
             }
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             document.getElementById('searchInput').value = '';
+            cancelSleepTimer();
             currentTrackIndex = 0;
             updatePlaylistCount();
             showToast('Playlist limpiada', 'info');
@@ -1008,6 +1068,50 @@
             const labels = { none: 'Repetición desactivada', all: 'Repetir toda la lista', one: 'Repetir una canción' };
             showToast(labels[repeatMode], 'info');
             saveState();
+        }
+
+        // Sleep timer
+        let sleepTimerId = null;
+        let sleepEndTime = null;
+
+        function toggleSleepTimer() {
+            const panel = document.getElementById('sleepOptions');
+            panel.style.display = panel.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function setSleepTimer(minutes) {
+            cancelSleepTimer();
+            sleepEndTime = Date.now() + minutes * 60000;
+            document.getElementById('sleepOptions').style.display = 'none';
+            document.getElementById('sleepBtn').classList.add('active-mode');
+
+            sleepTimerId = setInterval(() => {
+                const remaining = Math.max(0, Math.round((sleepEndTime - Date.now()) / 1000));
+                if (remaining <= 0) {
+                    cancelSleepTimer();
+                    audioPlayer.pause();
+                    showToast('Sleep timer: reproducción pausada', 'info');
+                    return;
+                }
+                const mins = Math.floor(remaining / 60);
+                const secs = remaining % 60;
+                const countdown = document.getElementById('sleepCountdown');
+                countdown.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                countdown.style.display = 'inline';
+                document.getElementById('sleepBtn').classList.add('active-mode');
+            }, 1000);
+
+            showToast(`Sleep timer: ${minutes} min`, 'info');
+        }
+
+        function cancelSleepTimer() {
+            if (sleepTimerId) {
+                clearInterval(sleepTimerId);
+                sleepTimerId = null;
+            }
+            sleepEndTime = null;
+            document.getElementById('sleepCountdown').style.display = 'none';
+            document.getElementById('sleepBtn').classList.remove('active-mode');
         }
 
         // Picture-in-Picture
