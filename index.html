@@ -607,6 +607,45 @@
             setTimeout(() => toast.remove(), 3000);
         }
 
+        // Persistencia en localStorage
+        function saveState() {
+            const state = {
+                volume: audioPlayer.volume,
+                isShuffle,
+                repeatMode,
+                theme: document.body.classList.contains('light-mode') ? 'light' : 'dark'
+            };
+            try {
+                localStorage.setItem('mp3player_state', JSON.stringify(state));
+            } catch(e) {}
+        }
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem('mp3player_state');
+                if (!raw) return;
+                const state = JSON.parse(raw);
+                if (typeof state.volume === 'number') {
+                    audioPlayer.volume = state.volume;
+                    volumeControl.value = state.volume;
+                }
+                if (state.isShuffle) {
+                    isShuffle = true;
+                    document.getElementById('shuffleBtn').classList.add('active-mode');
+                }
+                if (state.repeatMode && state.repeatMode !== 'none') {
+                    repeatMode = state.repeatMode;
+                    const repeatBtn = document.getElementById('repeatBtn');
+                    repeatBtn.textContent = repeatMode === 'one' ? '🔂' : '🔁';
+                    repeatBtn.classList.add('active-mode');
+                }
+                if (state.theme === 'light') {
+                    document.body.classList.add('light-mode');
+                    document.getElementById('themeToggle').textContent = '☀️';
+                }
+            } catch(e) {}
+        }
+
         // Tema
         function toggleTheme() {
             const body = document.body;
@@ -614,6 +653,7 @@
             const btn = document.getElementById('themeToggle');
             btn.textContent = body.classList.contains('light-mode') ? '☀️' : '🌙';
             showToast(body.classList.contains('light-mode') ? 'Modo claro' : 'Modo oscuro', 'info');
+            saveState();
         }
 
         // Manejo de archivos
@@ -782,6 +822,7 @@
             isShuffle = !isShuffle;
             document.getElementById('shuffleBtn').classList.toggle('active-mode', isShuffle);
             showToast(isShuffle ? 'Modo aleatorio activado' : 'Modo aleatorio desactivado', 'info');
+            saveState();
         }
 
         function toggleRepeat() {
@@ -792,6 +833,7 @@
             repeatBtn.classList.toggle('active-mode', repeatMode !== 'none');
             const labels = { none: 'Repetición desactivada', all: 'Repetir toda la lista', one: 'Repetir una canción' };
             showToast(labels[repeatMode], 'info');
+            saveState();
         }
 
         // Barra de progreso
@@ -821,6 +863,7 @@
         // Volumen
         volumeControl.addEventListener('input', (e) => {
             audioPlayer.volume = e.target.value;
+            saveState();
         });
 
         // Ecualizador visual
@@ -957,8 +1000,9 @@
             progressBar.max = audioPlayer.duration;
         });
 
-        // Inicializar contador
+        // Inicializar contador y estado persistido
         updatePlaylistCount();
+        loadState();
     </script>
 </body>
 </html>
