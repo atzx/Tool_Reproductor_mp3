@@ -172,6 +172,33 @@
             width: 80px;
         }
 
+        /* Progress bar tooltip */
+        .progress-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .progress-tooltip {
+            position: absolute;
+            bottom: 28px;
+            left: 0;
+            transform: translateX(-50%);
+            background-color: var(--container-bg);
+            color: var(--text-color);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            white-space: nowrap;
+        }
+
+        .progress-wrapper:hover .progress-tooltip {
+            opacity: 1;
+        }
+
         .playlist {
             margin-top: 20px;
             width: 300px;
@@ -307,7 +334,10 @@
             <span id="currentTime">0:00</span>
             <span id="duration">0:00</span>
         </div>
-        <input type="range" id="progressBar" value="0" title="Barra de progreso">
+        <div class="progress-wrapper">
+            <input type="range" id="progressBar" value="0" title="Barra de progreso">
+            <span class="progress-tooltip" id="progressTooltip">0:00</span>
+        </div>
         <div class="controls">
             <button onclick="previousTrack()" title="Anterior">⏮</button>
             <button onclick="togglePlay()" title="Reproducir / Pausar">▶</button>
@@ -465,6 +495,8 @@
         }
 
         // Barra de progreso
+        const progressTooltip = document.getElementById('progressTooltip');
+
         audioPlayer.addEventListener('timeupdate', () => {
             progressBar.value = (audioPlayer.currentTime / audioPlayer.duration) * 100 || 0;
             currentTime.textContent = formatTime(audioPlayer.currentTime);
@@ -472,6 +504,18 @@
 
         progressBar.addEventListener('input', (e) => {
             audioPlayer.currentTime = (e.target.value / 100) * audioPlayer.duration;
+        });
+
+        // Tooltip en barra de progreso
+        progressBar.addEventListener('mousemove', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            const val = pct * (audioPlayer.duration || 0);
+            progressTooltip.textContent = formatTime(val);
+            const tooltipWidth = progressTooltip.offsetWidth;
+            const barWidth = rect.width;
+            const tooltipLeft = Math.max(tooltipWidth / 2, Math.min(barWidth - tooltipWidth / 2, pct * barWidth));
+            progressTooltip.style.left = tooltipLeft + 'px';
         });
 
         // Volumen
