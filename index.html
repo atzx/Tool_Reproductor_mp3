@@ -685,6 +685,7 @@
     <div class="playlist" id="playlist">
         <div class="playlist-header">
             <span id="trackCount">Lista de reproducción</span>
+            <button id="sortBtn" onclick="toggleSortOrder()" title="Ordenar por nombre" style="display:none;">🔤</button>
             <button id="clearPlaylistBtn" onclick="clearPlaylist()" title="Limpiar playlist" style="display:none;">🗑 Limpiar</button>
             <input type="text" id="searchInput" placeholder="Buscar canciones..." oninput="filterPlaylist()">
         </div>
@@ -707,6 +708,7 @@
         let tracks = [];
         let isShuffle = false;
         let repeatMode = 'none'; // 'none' | 'all' | 'one'
+        let sortAscending = true;
 
         // Toast notifications
         function showToast(message, type = 'info') {
@@ -773,51 +775,79 @@
 
         // Manejo de archivos
         function handleFiles(files) {
+            let added = 0;
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 if (!file.type.startsWith('audio/')) continue;
-
                 const url = URL.createObjectURL(file);
                 tracks.push({ name: file.name, url: url, plays: 0 });
-
-                const div = document.createElement('div');
-                div.className = 'playlist-item';
-                div.title = file.name;
-
-                const nameSpan = document.createElement('span');
-                nameSpan.textContent = file.name;
-                div.appendChild(nameSpan);
-
-                const delBtn = document.createElement('button');
-                delBtn.className = 'delete-track';
-                delBtn.textContent = '✕';
-                delBtn.title = 'Eliminar';
-                const playCountSpan = document.createElement('span');
-                playCountSpan.className = 'play-count';
-                playCountSpan.textContent = '0';
-                div.appendChild(playCountSpan);
-
-                delBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    removeTrack(tracks.length - 1);
-                };
-                div.appendChild(delBtn);
-
-                div.onclick = () => playTrack(tracks.indexOf(tracks.find(t => t.url === url)));
-                playlistItems.appendChild(div);
+                added++;
             }
 
+            if (added === 0) return;
+            rebuildPlaylistDOM();
             updatePlaylistCount();
-            const added = files.length;
-            if (added > 0) showToast(`${added} archivo${added > 1 ? 's' : ''} agregado${added > 1 ? 's' : ''}`, 'success');
+            showToast(`${added} archivo${added > 1 ? 's' : ''} agregado${added > 1 ? 's' : ''}`, 'success');
 
-            if(tracks.length > 0 && audioPlayer.paused) playTrack(0);
+            if (audioPlayer.paused) playTrack(0);
         }
 
         function updatePlaylistCount() {
             trackCount.textContent = tracks.length ? `${tracks.length} canción${tracks.length > 1 ? 'es' : ''}` : 'Lista de reproducción';
             document.getElementById('clearPlaylistBtn').style.display = tracks.length ? 'inline-block' : 'none';
+            document.getElementById('sortBtn').style.display = tracks.length ? 'inline-block' : 'none';
             document.getElementById('searchInput').style.display = tracks.length ? 'block' : 'none';
+        }
+
+        // Ordenar playlist por nombre
+        function toggleSortOrder() {
+            const oldIndex = currentTrackIndex;
+            const currentUrl = tracks[oldIndex]?.url;
+
+            sortAscending = !sortAscending;
+            const sorted = [...tracks].sort((a, b) => {
+                const cmp = a.name.localeCompare(b.name);
+                return sortAscending ? cmp : -cmp;
+            });
+
+            tracks = sorted;
+            const newIndex = tracks.findIndex(t => t.url === currentUrl);
+            currentTrackIndex = newIndex >= 0 ? newIndex : 0;
+
+            rebuildPlaylistDOM();
+            showToast(`Ordenado ${sortAscending ? 'A-Z' : 'Z-A'}`, 'info');
+        }
+
+        function rebuildPlaylistDOM() {
+            playlistItems.innerHTML = '';
+            tracks.forEach((track, i) => {
+                const div = document.createElement('div');
+                div.className = 'playlist-item';
+                div.title = track.name;
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = track.name;
+                div.appendChild(nameSpan);
+
+                const countSpan = document.createElement('span');
+                countSpan.className = 'play-count';
+                countSpan.textContent = track.plays || 0;
+                div.appendChild(countSpan);
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-track';
+                delBtn.textContent = '✕';
+                delBtn.title = 'Eliminar';
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeTrack(i);
+                };
+                div.appendChild(delBtn);
+
+                div.onclick = () => playTrack(i);
+                if (i === currentTrackIndex) div.classList.add('playing');
+                playlistItems.appendChild(div);
+            });
         }
 
         // Búsqueda en playlist
