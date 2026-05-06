@@ -1357,7 +1357,6 @@
         // Inicializar duración
         audioPlayer.addEventListener('loadedmetadata', () => {
             duration.textContent = formatTime(audioPlayer.duration);
-            progressBar.max = audioPlayer.duration;
         });
 
         // Inicializar contador y estado persistido
