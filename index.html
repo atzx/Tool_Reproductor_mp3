@@ -31,8 +31,11 @@
         body {
             font-family: Arial, sans-serif;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
             background-color: var(--bg-color);
             min-height: 100vh;
             margin: 0;
@@ -45,7 +48,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            width: 340px;
+            width: 100%;
+            max-width: 720px;
             padding-bottom: 10px;
             border-bottom: 1px solid var(--header-border);
             margin-bottom: 10px;
@@ -80,8 +84,8 @@
             padding: 20px;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin: 20px;
             width: 300px;
+            flex-shrink: 0;
             transition: background-color 0.3s;
         }
 
@@ -222,10 +226,11 @@
         }
 
         .playlist {
-            margin-top: 20px;
-            width: 300px;
+            width: 360px;
+            min-width: 300px;
             min-height: 200px;
-            max-height: 400px;
+            max-height: 520px;
+            flex: 1;
             overflow-y: auto;
             border: 2px dashed var(--dropzone-border);
             border-radius: 10px;
@@ -621,14 +626,14 @@
         }
 
         /* Responsive design */
-        @media (max-width: 400px) {
+        @media (max-width: 760px) {
             body {
                 padding: 10px;
+                gap: 12px;
             }
 
             .header {
-                width: 100%;
-                max-width: 340px;
+                max-width: 100%;
                 box-sizing: border-box;
                 padding-bottom: 8px;
             }
@@ -638,18 +643,18 @@
             }
 
             .player-container {
+                flex-shrink: unset;
                 width: 100%;
-                max-width: 300px;
+                max-width: 340px;
                 padding: 15px;
-                margin: 15px 0;
                 box-sizing: border-box;
             }
 
             .playlist {
                 width: 100%;
-                max-width: 300px;
-                box-sizing: border-box;
+                min-width: 0;
                 max-height: 300px;
+                box-sizing: border-box;
             }
 
             .vinyl {

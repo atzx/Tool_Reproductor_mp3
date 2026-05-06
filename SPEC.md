@@ -252,8 +252,10 @@ All themed colors controlled via CSS variables on `:root` (dark default). `body.
 ## 17. UI / Styling
 
 ### 17.1 Layout
-- Flexbox centered, `min-height: 100vh`.
-- Player container 300px, header 340px, playlist 300px.
+- Body: flexbox row with wrapping, centered, `align-items: flex-start`, `gap: 20px`.
+- Header: `width: 100%`, `max-width: 720px`, spans full width.
+- Player container: 300px fixed, `flex-shrink: 0` — positioned on the left.
+- Playlist: `flex: 1`, `min-width: 300px`, grows up to available space — positioned on the right.
 
 ### 17.2 Micro-interactions
 - Buttons: `scale(0.93)` on `:active`, 0.1s transition.
@@ -267,9 +269,9 @@ All themed colors controlled via CSS variables on `:root` (dark default). `body.
 - `.playlist` max-height: 400px, `overflow-y: auto`.
 
 ### 17.4 Responsive Design
-- `@media (max-width: 400px)`:
+- `@media (max-width: 760px)`: Layout stacks vertically when viewport is too narrow.
   - Fluid widths with `max-width` and `box-sizing: border-box`
-  - Reduced padding and font sizes
+  - Reduced padding, gap and font sizes
   - Vinyl shrinks to 100px
   - Volume slider spans full width
   - Toasts adjust to screen edges
