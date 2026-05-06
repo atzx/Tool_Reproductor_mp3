@@ -244,9 +244,56 @@
         .active-mode {
             background-color: var(--active) !important;
         }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background-color: var(--container-bg);
+            color: var(--text-color);
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            border-left: 4px solid var(--primary);
+            font-size: 0.9rem;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+            max-width: 300px;
+        }
+
+        .toast.success {
+            border-left-color: var(--primary);
+        }
+
+        .toast.error {
+            border-left-color: #e74c3c;
+        }
+
+        .toast.info {
+            border-left-color: var(--active);
+        }
+
+        @keyframes toastIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes toastOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
     </style>
 </head>
 <body>
+    <div class="toast-container" id="toastContainer"></div>
+
     <div class="header">
         <h1>Tool Player mp3</h1>
         <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Cambiar modo" title="Cambiar tema">🌙</button>
@@ -292,12 +339,23 @@
         let isShuffle = false;
         let repeatMode = 'none'; // 'none' | 'all' | 'one'
 
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
         // Tema
         function toggleTheme() {
             const body = document.body;
             body.classList.toggle('light-mode');
             const btn = document.getElementById('themeToggle');
             btn.textContent = body.classList.contains('light-mode') ? '☀️' : '🌙';
+            showToast(body.classList.contains('light-mode') ? 'Modo claro' : 'Modo oscuro', 'info');
         }
 
         // Manejo de archivos
@@ -316,6 +374,9 @@
                 div.onclick = () => playTrack(tracks.indexOf(tracks.find(t => t.url === url)));
                 playlist.appendChild(div);
             }
+
+            const added = files.length;
+            if (added > 0) showToast(`${added} archivo${added > 1 ? 's' : ''} agregado${added > 1 ? 's' : ''}`, 'success');
 
             if(tracks.length > 0 && audioPlayer.paused) playTrack(0);
         }
@@ -390,6 +451,7 @@
         function toggleShuffle() {
             isShuffle = !isShuffle;
             document.getElementById('shuffleBtn').classList.toggle('active-mode', isShuffle);
+            showToast(isShuffle ? 'Modo aleatorio activado' : 'Modo aleatorio desactivado', 'info');
         }
 
         function toggleRepeat() {
@@ -398,6 +460,8 @@
             const repeatBtn = document.getElementById('repeatBtn');
             repeatBtn.textContent = repeatMode === 'one' ? '🔂' : '🔁';
             repeatBtn.classList.toggle('active-mode', repeatMode !== 'none');
+            const labels = { none: 'Repetición desactivada', all: 'Repetir toda la lista', one: 'Repetir una canción' };
+            showToast(labels[repeatMode], 'info');
         }
 
         // Barra de progreso
