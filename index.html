@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de Música Mejorado</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .player-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin: 20px;
+            width: 300px;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .playlist {
+            margin-top: 20px;
+            width: 300px;
+            min-height: 200px;
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 10px;
+            transition: border-color 0.3s;
+        }
+
+        .playlist.dragover {
+            border-color: #4CAF50;
+            background-color: rgba(76, 175, 80, 0.1);
+        }
+
+        .playlist-item {
+            padding: 10px;
+            background-color: white;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .playlist-item:hover {
+            background-color: #f0f0f0;
+        }
+
+        .playlist-item.playing {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .current-song {
+            margin: 10px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .mode-buttons {
+            margin-top: 10px;
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .active-mode {
+            background-color: #2196F3 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="player-container">
+        <input type="file" id="fileInput" accept="audio/*" multiple>
+        <div class="current-song" id="currentSong">Selecciona archivos de audio</div>
+        <audio id="audioPlayer"></audio>
+        <div class="time-info">
+            <span id="currentTime">0:00</span>
+            <span id="duration">0:00</span>
+        </div>
+        <input type="range" id="progressBar" value="0">
+        <div class="controls">
+            <button onclick="previousTrack()">⏮</button>
+            <button onclick="togglePlay()">▶</button>
+            <button onclick="nextTrack()">⏭</button>
+            <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="1">
+        </div>
+        <div class="mode-buttons">
+            <button id="shuffleBtn" onclick="toggleShuffle()">🔀</button>
+            <button id="repeatBtn" onclick="toggleRepeat()">🔁</button>
+        </div>
+    </div>
+    
+    <div class="playlist" id="playlist">
+        Arrastra y suelta archivos de audio aquí
+    </div>
+
+    <script>
+        const audioPlayer = document.getElementById('audioPlayer');
+        const fileInput = document.getElementById('fileInput');
+        const playlist = document.getElementById('playlist');
+        const progressBar = document.getElementById('progressBar');
+        const volumeControl = document.getElementById('volumeControl');
+        const currentTime = document.getElementById('currentTime');
+        const duration = document.getElementById('duration');
+        const currentSong = document.getElementById('currentSong');
+
+        let currentTrackIndex = 0;
+        let tracks = [];
+        let isShuffle = false;
+        let repeatMode = 'none'; // 'none' | 'all' | 'one'
+
+        // Manejo de archivos
+        function handleFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (!file.type.startsWith('audio/')) continue;
+                
+                const url = URL.createObjectURL(file);
+                tracks.push({ name: file.name, url: url });
+                
+                const div = document.createElement('div');
+                div.className = 'playlist-item';
+                div.textContent = file.name;
+                div.onclick = () => playTrack(tracks.indexOf(tracks.find(t => t.url === url)));
+                playlist.appendChild(div);
+            }
+            
+            if(tracks.length > 0 && audioPlayer.paused) playTrack(0);
+        }
+
+        // Drag and Drop
+        playlist.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            playlist.classList.add('dragover');
+        });
+
+        playlist.addEventListener('dragleave', () => {
+            playlist.classList.remove('dragover');
+        });
+
+        playlist.addEventListener('drop', (e) => {
+            e.preventDefault();
+            playlist.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        // File input
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+            e.target.value = ''; // Reset input para permitir seleccionar mismos archivos
+        });
+
+        // Reproducción
+        function togglePlay() {
+            if(audioPlayer.paused) {
+                audioPlayer.play();
+                document.querySelector('button[onclick="togglePlay()"]').textContent = '⏸';
+            } else {
+                audioPlayer.pause();
+                document.querySelector('button[onclick="togglePlay()"]').textContent = '▶';
+            }
+        }
+
+        function playTrack(index) {
+            if(index < 0 || index >= tracks.length) return;
+            
+            currentTrackIndex = index;
+            audioPlayer.src = tracks[index].url;
+            audioPlayer.play();
+            currentSong.textContent = tracks[index].name;
+            
+            // Actualizar estilos de la playlist
+            document.querySelectorAll('.playlist-item').forEach((item, i) => {
+                item.classList.toggle('playing', i === index);
+            });
+        }
+
+        // Navegación
+        function nextTrack() {
+            if(isShuffle) {
+                currentTrackIndex = Math.floor(Math.random() * tracks.length);
+            } else {
+                currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+            }
+            playTrack(currentTrackIndex);
+        }
+
+        function previousTrack() {
+            if(audioPlayer.currentTime > 2) {
+                audioPlayer.currentTime = 0;
+                return;
+            }
+            currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
+            playTrack(currentTrackIndex);
+        }
+
+        // Modos de reproducción
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            document.getElementById('shuffleBtn').classList.toggle('active-mode', isShuffle);
+        }
+
+        function toggleRepeat() {
+            const modes = ['none', 'all', 'one'];
+            repeatMode = modes[(modes.indexOf(repeatMode) + 1) % modes.length];
+            const repeatBtn = document.getElementById('repeatBtn');
+            repeatBtn.textContent = repeatMode === 'one' ? '🔂' : '🔁';
+            repeatBtn.classList.toggle('active-mode', repeatMode !== 'none');
+        }
+
+        // Barra de progreso
+        audioPlayer.addEventListener('timeupdate', () => {
+            progressBar.value = (audioPlayer.currentTime / audioPlayer.duration) * 100 || 0;
+            currentTime.textContent = formatTime(audioPlayer.currentTime);
+        });
+
+        progressBar.addEventListener('input', (e) => {
+            audioPlayer.currentTime = (e.target.value / 100) * audioPlayer.duration;
+        });
+
+        // Volumen
+        volumeControl.addEventListener('input', (e) => {
+            audioPlayer.volume = e.target.value;
+        });
+
+        // Final de canción
+        audioPlayer.addEventListener('ended', () => {
+            if(repeatMode === 'one') {
+                audioPlayer.play();
+                return;
+            }
+            
+            if(repeatMode === 'all' || isShuffle) {
+                nextTrack();
+            } else if(currentTrackIndex < tracks.length - 1) {
+                nextTrack();
+            }
+        });
+
+        // Tiempo formateado
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            seconds = Math.floor(seconds % 60);
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Atajos de teclado
+        document.addEventListener('keydown', (e) => {
+            switch(e.key.toLowerCase()) {
+                case ' ':
+                    e.preventDefault();
+                    togglePlay();
+                    break;
+                case 'arrowright':
+                    audioPlayer.currentTime += 5;
+                    break;
+                case 'arrowleft':
+                    audioPlayer.currentTime -= 5;
+                    break;
+                case 'arrowup':
+                    audioPlayer.volume = Math.min(1, audioPlayer.volume + 0.1);
+                    volumeControl.value = audioPlayer.volume;
+                    break;
+                case 'arrowdown':
+                    audioPlayer.volume = Math.max(0, audioPlayer.volume - 0.1);
+                    volumeControl.value = audioPlayer.volume;
+                    break;
+                case 'n':
+                    nextTrack();
+                    break;
+                case 'p':
+                    previousTrack();
+                    break;
+                case 's':
+                    toggleShuffle();
+                    break;
+                case 'r':
+                    toggleRepeat();
+                    break;
+            }
+        });
+
+        // Inicializar duración
+        audioPlayer.addEventListener('loadedmetadata', () => {
+            duration.textContent = formatTime(audioPlayer.duration);
+            progressBar.max = audioPlayer.duration;
+        });
+    </script>
+</body>
+</html>
