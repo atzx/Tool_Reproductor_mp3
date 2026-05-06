@@ -264,6 +264,8 @@
             margin-bottom: 8px;
             font-size: 0.85rem;
             opacity: 0.7;
+            flex-wrap: wrap;
+            gap: 6px;
         }
 
         .playlist-header button {
@@ -273,6 +275,37 @@
             border: 1px solid var(--text-color);
             color: var(--text-color);
             opacity: 0.7;
+        }
+
+        .playlist-header button:hover {
+            opacity: 1;
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--dropzone-border);
+            background-color: var(--container-bg);
+            color: var(--text-color);
+            font-size: 0.85rem;
+            outline: none;
+            margin-top: 4px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        #searchInput:focus {
+            border-color: var(--primary);
+        }
+
+        #searchInput::placeholder {
+            opacity: 0.5;
+        }
+
+        .playlist-item.hidden {
+            display: none;
         }
 
         .playlist-header button:hover {
@@ -576,6 +609,7 @@
         <div class="playlist-header">
             <span id="trackCount">Lista de reproducción</span>
             <button id="clearPlaylistBtn" onclick="clearPlaylist()" title="Limpiar playlist" style="display:none;">🗑 Limpiar</button>
+            <input type="text" id="searchInput" placeholder="Buscar canciones..." oninput="filterPlaylist()">
         </div>
         <div id="playlistItems">Arrastra y suelta archivos de audio aquí</div>
     </div>
@@ -697,6 +731,16 @@
         function updatePlaylistCount() {
             trackCount.textContent = tracks.length ? `${tracks.length} canción${tracks.length > 1 ? 'es' : ''}` : 'Lista de reproducción';
             document.getElementById('clearPlaylistBtn').style.display = tracks.length ? 'inline-block' : 'none';
+            document.getElementById('searchInput').style.display = tracks.length ? 'block' : 'none';
+        }
+
+        // Búsqueda en playlist
+        function filterPlaylist() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            document.querySelectorAll('.playlist-item').forEach(item => {
+                const name = item.querySelector('span').textContent.toLowerCase();
+                item.classList.toggle('hidden', !name.includes(query));
+            });
         }
 
         // Limpiar playlist
@@ -715,6 +759,7 @@
                 eqAnimId = null;
             }
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('searchInput').value = '';
             currentTrackIndex = 0;
             updatePlaylistCount();
             showToast('Playlist limpiada', 'info');
