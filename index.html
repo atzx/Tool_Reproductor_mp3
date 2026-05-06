@@ -106,9 +106,70 @@
             background-color: var(--primary-hover);
         }
 
+        /* Range sliders personalizados */
         input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
             width: 100%;
             margin: 10px 0;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--dropzone-border);
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid var(--container-bg);
+            cursor: pointer;
+            box-shadow: 0 0 4px rgba(0,0,0,0.3);
+            transition: transform 0.15s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        input[type="range"]::-moz-range-track {
+            height: 6px;
+            border-radius: 3px;
+            background: var(--dropzone-border);
+            border: none;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 2px solid var(--container-bg);
+            cursor: pointer;
+            box-shadow: 0 0 4px rgba(0,0,0,0.3);
+        }
+
+        #progressBar {
+            height: 8px;
+            border-radius: 4px;
+        }
+
+        #progressBar::-webkit-slider-thumb {
+            width: 18px;
+            height: 18px;
+        }
+
+        #progressBar::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+        }
+
+        #volumeControl {
+            width: 80px;
         }
 
         .playlist {
